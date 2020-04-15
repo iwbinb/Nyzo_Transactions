@@ -9,28 +9,30 @@ class NetworkObserver:
         :param 1 ip_address: the ip address of the node fetching information from the network
         :param 2 url_prepend: the prepend of the ip address through which requests can make a request
         :param 3 url_append: the append of the ip address, this is where the API endpoint is running
+
         :param 4 chunk_size_missing_blocks: this is a configurable chunk size, if a block is missing from the
                                           last [x=default=50], all data from this observer <<will be considered
                                           useless>> until the missing block is no longer part of the last x
-        :param 5 failed_fetch_minimum_seconds_passed : a configurable seconds counter, if last_failed_fetch_timestamp_seconds
+        :param 5 failed_fetch_minimum_seconds_passed : a configurable seconds counter, <<if last_failed_fetch_timestamp_seconds
                                                        + failed_fetch_minimum_seconds_passed is bigger than the
-                                                       last_successful_fetch_timestamp_seconds
+                                                       last_successful_fetch_timestamp_seconds>>
                                                        the observer <<will be considered useless>> until this has resolved
         :param 6 allowed_frozenEdge_sync_discrepancy: all network observers have a frozenEdge, this allows the observer
                                                       to deviate, by default, 5 blocks from the highest frozenEdge observed,
                                                       and should be the leniency used <<when considering to update>>
                                                       missing_blocks_in_chunk and chunk_size_missing_blocks
 
-        :returns 1 base_url: a concoction of param[1,2,3]
-        :returns 2 last_seen_frozenEdge: set at 0 by default, this is populated every [] by the [] function
-        :returns 3 chunk_size_missing_blocks: sets the parameter, explanation above
-        :returns 4 last_failed_fetch_timestamp_seconds: set at 0 by default, every contact with the observer
-                                                      updates this value
+        :returns 1 base_url: a concoction of param[1,2,3], this is never updated
+        :returns 3 chunk_size_missing_blocks: sets the parameter, explanation above, this is never updated
         :returns 5 failed_fetch_minimum_seconds_passed: set at 350 by default, this is never updated
-        :returns 6 missing_blocks_in_chunk: by default True, we haven't fetched anything yet during initialization
 
+        :returns 2 last_seen_frozenEdge: set at 0 by default, <<this is populated every [] by the [] function>>
+        :returns 4 last_failed_fetch_timestamp_seconds: set at 0 by default, <<every contact with the observer
+                                                      updates this value>>
+        :returns 6 missing_blocks_in_chunk: by default True, we haven't fetched anything yet during initialization,
+                                            <<this is updated by the functions: []>>
         :returns 7 network_observer_live: by default False, we haven't fetched anything yet during initialization
-                                        this should be auto-updated **BEFORE** an action, according to returns[3,4,5,6]
+                                        <<this should be auto-updated **BEFORE** an action>>, according to returns[3,4,5,6]
         """
         self.base_url = url_prepend + ip_address + url_append
         self.last_seen_frozenEdge = 0
