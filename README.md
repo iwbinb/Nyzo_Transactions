@@ -35,6 +35,7 @@ This application facilitates:
 # Loop
 This application performs the same set of actions regularly, in chronological order.
 The start of the loop pertains to all network observers, as comparing the frozenEdge is necessary
+- generate a new run_id and timestamp, pop the oldest run_id+ts from the *rolling_run_ids* list (0), append the newly generated run_id+ts
 - query the frozen edge from each individual network observer
 - depending on if the query is successful, update either *last_failed_frozenEdge_fetch_timestamp_seconds* or *last_successful_frozenEdge_fetch_timestamp_seconds*
 - update the last_seen_frozenEdgeHeight parameter of an observer's class instance
@@ -42,7 +43,7 @@ The start of the loop pertains to all network observers, as comparing the frozen
 - consider the *allowed_frozenEdge_sync_discrepancy* per individual Network Observer to assert whether the observer is to be considered in sync relative to its equal peers
 - if a node's frozenedge deviates more than allowed, *frozenEdge_in_sync* = False
 - if a node's (*last_failed_frozenEdge_fetch_timestamp* - *last_successful_frozenEdge_fetch_timestamp*) < *failed_fetch_minimum_seconds_passed*,
-*node_fetching_reliable* is set to False
+*frozenEdge_fetching_reliable* is set to False
 
 
 The next bit of the loop will fetch the blocks from every observer:
@@ -55,6 +56,25 @@ needs to be utilized *(last_seen_frozenEdgeHeight-n)*range(chunk_size_missing_bl
 it considers the *failed_fetch_minimum_seconds_passed* for comparing *last_failed_transaction_fetch_timestamp_seconds* and *last_successful_transaction_fetch_timestamp_seconds* (similar principle as with frozenedge, but for blocks)
 - depending on whether the *last_seen_transaction_blocks* contains (successful fetch communication + block available on node) all blocks, 
 the *missing_blocks_in_chunk* param is either set to True or False
+
+
+The next bit of the loop will make use of 3 configurable parameters:
+- if *consider_missing_blocks* is enabled/True, the *missing_blocks_in_chunk* parameter which contains
+the result from this loop's previous operations, is taken into regard
+- if *consider_frozen_edge_discrepancy* is enabled/True, the *frozenEdge_in_sync* parameter which contains
+the result from this loop's previous operations, is taken into regard
+- if *consider_fetching_unreliability* is enabled/True, the *frozenEdge_fetching_reliable* and *block_fetching_reliable* parameters which contains
+the result from this loop's previous operations, are taken into regard
+- the results of these consideration checks are stored in a temporary list
+- if the results, after determining whether to take them into consideration or not,
+indicate that the node is unreliable, has missing blocks, or is out of sync compared to its peers, all transactions reported
+by the node will be disregarded
+- in the configurations class, the *amount_of_network_observers_compliant_minimum* parameter is used to check if the total amount of nodes for which
+its individual transaction have been disregarded does not exceed (*amount_of_network_observers* - *amount_of_network_observers_compliant_minimum*)
+If the minimum amount of nodes, for which transaction data has not been disregarded, is not met, the data from nodes for which
+transaction data has not been disregarded, will be disregarded as well
+This means that at this point, there are no transactions to process, as there are too little nodes which are working properly according to the demanded minimum
+
 
 
 
