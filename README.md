@@ -78,14 +78,18 @@ This means that at this point, there are no transactions to process, as there ar
 will be stored in a temporary list with dicts
 - this temporary list will be used to insert the transactions into the mongodb database, this insertion always takes place,
 even if all data has been disregarded, this makes any omissions due to data disregarding visible from the transactions api
+
 (note to self: storing the amount of nodes which originally had their data disregarded vs nodes which originally wouldn't have their data disregarded along with the insert is probably a good idea)
 - of all nodes, all parameters are inserted as events into the mongodb database
 
 # Beyond the loop
 - the api can be used, which in turns grabs results out of the mongodb, this is the primary source for knowing about confirmed transactions
 and for extracting historical information about node observer behavior and states
+
 (note to self: node events should be extractable by timestamp buckets ?from_ts= &until_ts=)
+
 (note to self: transactions should be extractable by timestamp buckets ?from_ts= &until_ts=)
+
 (note to self: transactions should be extractable by block buckets ?from_block= &until_block=)
 
 To consider:
