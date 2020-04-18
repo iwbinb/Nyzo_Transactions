@@ -1,5 +1,9 @@
 # Nyzo_Transactions - wip
- Can be used to confirm incoming transactions to a Nyzo address
+ Can be used to confirm incoming transactions to a Nyzo address and aims to be ultra-redundant out of the box.
+ 
+ Consider it your ultra-paranoid blockchain watchdog.
+ 
+ This repository is not production ready. Do not use it, it will not work at this time.
 
 # Goal
 What this repository aims to be is Nyzo transaction witnesser.
@@ -23,10 +27,38 @@ It is not necessary for a Nyzo network node to:
 
 This application facilitates:
 - the adding and removing of Network Observers (Nyzo nodes) from which data will be queried
-- the configuration of several parameters pertaining to the network observer
+- the configuration of several parameters pertaining to each specific network observer
 - the storing of transactions and their sender data in MongoDB, with available filter mechanism as to only store transactions pertaining a particular set of addresses, thus saving on storage
 - a historical api pertaining to the network observers and their states
 - a historical api pertaining to address specific transaction history
+
+# Loop
+This application performs the same set of actions regularly, in chronological order.
+The start of the loop pertains to all network observers, as comparing the frozenEdge is necessary
+- query the frozen edge from each individual network observer
+- depending on if the query is successful, update either *last_failed_frozenEdge_fetch_timestamp_seconds* or *last_successful_frozenEdge_fetch_timestamp_seconds*
+- update the last_seen_frozenEdgeHeight parameter of an observer's class instance
+- compare the frozen edge of all network observers against each other
+- consider the *allowed_frozenEdge_sync_discrepancy* per individual Network Observer to assert whether the observer is to be considered in sync relative to its equal peers
+- if a node's frozenedge deviates more than allowed, *frozenEdge_in_sync* = True
+- if a node's (*last_failed_frozenEdge_fetch_timestamp* - *last_successful_frozenEdge_fetch_timestamp*) < failed_fetch_minimum_seconds_passed,
+node_fetching_reliable is set to False
+
+
+The next bit of the loop will fetch the blocks from every observer:
+- from the observer's class instance, the *last_seen_frozenEdgeHeight* is used in combination with
+the *chunk_size_missing_blocks*, to determine for which heights the transactionSearch command from the api
+needs to be utilized *(last_seen_frozenEdgeHeight-n)*range(chunk_size_missing_blocks)*
+- depending on if ALL the queries are successful, update either *last_failed_transaction_fetch_timestamp_seconds* or *last_successful_transaction_fetch_timestamp_seconds*
+- the results are stored in last_seen_transaction_blocks
+- depending on the results now stored in *last_seen_transaction_blocks*, the *block_fetching_reliable* param is either set to True or False:
+it considers the *failed_fetch_minimum_seconds_passed* for comparing *last_failed_transaction_fetch_timestamp_seconds* and *last_successful_transaction_fetch_timestamp_seconds* (similar principle as with frozenedge, but for blocks)
+- depending on whether the *last_seen_transaction_blocks* contains (successful fetch communication + block available on node) all blocks, 
+the *missing_blocks_in_chunk* param is either set to True or False
+
+
+
+
  
 
 
