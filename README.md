@@ -40,7 +40,7 @@ The start of the loop pertains to all network observers, as comparing the frozen
 - update the last_seen_frozenEdgeHeight parameter of an observer's class instance
 - compare the frozen edge of all network observers against each other
 - consider the *allowed_frozenEdge_sync_discrepancy* per individual Network Observer to assert whether the observer is to be considered in sync relative to its equal peers
-- if a node's frozenedge deviates more than allowed, *frozenEdge_in_sync* = True
+- if a node's frozenedge deviates more than allowed, *frozenEdge_in_sync* = False
 - if a node's (*last_failed_frozenEdge_fetch_timestamp* - *last_successful_frozenEdge_fetch_timestamp*) < failed_fetch_minimum_seconds_passed,
 node_fetching_reliable is set to False
 
