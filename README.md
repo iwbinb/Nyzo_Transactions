@@ -81,9 +81,7 @@ will be stored in a temporary list with dicts
 
 To consider:
 - When nodes are producing bad results within their preset parametered limitations and their transaction data is disregarded on a 
-continuous basis, there's a likelihood that there will be an extended period where no transaction data is processed by the application
-
-While giving your parameters more leniency may seem like an attractive solution at this point, the problem rests with your nodes and not with the application.
+continuous basis, there's a likelihood that there will be an extended period where no transaction data is processed by the application. While giving your parameters more leniency may seem like an attractive solution at this point, the problem rests with your nodes and not with the application.
 
 
 
