@@ -22,3 +22,7 @@ class NetworkObserver:
 
         self.frozenEdge_fetching_reliable = False
         self.frozenEdge_in_sync = False
+
+        self.consider_missing_blocks = consider_missing_blocks
+        self.consider_frozen_edge_discrepancy = consider_frozen_edge_discrepancy
+        self.consider_fetching_unreliability = consider_fetching_unreliability
