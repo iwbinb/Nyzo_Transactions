@@ -50,7 +50,7 @@ The next bit of the loop will fetch the blocks from every observer:
 the *chunk_size_missing_blocks*, to determine for which heights the transactionSearch command from the api
 needs to be utilized *(last_seen_frozenEdgeHeight-n)*range(chunk_size_missing_blocks)*
 - depending on if ALL the queries for a single network observer are successful, update either *last_failed_transaction_fetch_timestamp_seconds* or *last_successful_transaction_fetch_timestamp_seconds*
-- the results are stored in last_seen_transaction_blocks
+- the results are stored in *last_seen_transaction_blocks*
 - depending on the results now stored in *last_seen_transaction_blocks*, the *block_fetching_reliable* param is either set to True or False:
 it considers the *failed_fetch_minimum_seconds_passed* for comparing *last_failed_transaction_fetch_timestamp_seconds* and *last_successful_transaction_fetch_timestamp_seconds* (similar principle as with frozenedge, but for blocks)
 - depending on whether the *last_seen_transaction_blocks* contains (successful fetch communication + block available on node) all blocks, 
