@@ -1,4 +1,4 @@
-# Nyzo_Transactions
+# Nyzo_Transactions - wip
  Can be used to confirm incoming transactions to a Nyzo address
 
 # Goal
@@ -17,5 +17,16 @@ To be able to use a Nyzo network node for this purpose:
 - API endpoints must be live and reachable on port 80
 - always_track_blockchain has to be enabled
 
+It is not necessary for a Nyzo network node to:
+- be part of the cycle
+- store all blocks permanently (the retention edge gap is large enough for regular querying and storage of data by a third-party application such as this one to suffice)
+
+This application facilitates:
+- the adding and removing of Network Observers (Nyzo nodes) from which data will be queried
+- the configuration of several parameters pertaining to the network observer
+- the storing of transactions and their sender data in MongoDB, with available filter mechanism as to only store transactions pertaining a particular set of addresses, thus saving on storage
+- a historical api pertaining to the network observers and their states
+- a historical api pertaining to address specific transaction history
+ 
 
 
