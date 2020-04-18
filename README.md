@@ -74,6 +74,17 @@ its individual transaction have been disregarded does not exceed (*amount_of_net
 If the minimum amount of nodes, for which transaction data has not been disregarded, is not met, the data from nodes for which
 transaction data has not been disregarded, will be disregarded as well
 This means that at this point, there are no transactions to process, as there are too little nodes which are working properly according to the demanded minimum
+- if the *amount_of_network_observers_compliant_minimum* is however met, the transaction data from the nodes from which transaction data has not been disregarded
+will be stored in a temporary list with dicts
+- this temporary list will be used to insert the transactions into the mongodb database
+- of all nodes, all parameters are inserted as events into the mongodb database
+
+To consider:
+- When nodes are producing bad results within their preset parametered limitations and their transaction data is disregarded on a 
+continuous basis, there's a likelihood that there will be an extended period where no transaction data is processed by the application
+While giving your parameters more leniency may seem like an attractive solution at this point, the problem rests with your nodes and not with the application.
+
+
 
 
 
