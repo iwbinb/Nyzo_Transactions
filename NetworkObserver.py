@@ -1,3 +1,6 @@
+import requests
+import json
+
 class NetworkObserver:
     def __init__(self, ip_address, consider_missing_blocks=True, consider_frozen_edge_discrepancy=True, consider_fetching_unreliability=True,
                  chunk_size_missing_blocks=20, failed_fetch_minimum_seconds_passed=350,
@@ -26,3 +29,23 @@ class NetworkObserver:
         self.consider_missing_blocks = consider_missing_blocks
         self.consider_frozen_edge_discrepancy = consider_frozen_edge_discrepancy
         self.consider_fetching_unreliability = consider_fetching_unreliability
+
+    def assignNewRunId(self):
+        from helpers import getTimestampSeconds, generateRunId
+        self.rolling_run_ids.pop(0)
+        self.rolling_run_ids.append([generateRunId(), getTimestampSeconds()])
+
+    def fetchFrozenEdge(self):
+        from helpers import getTimestampSeconds
+        temp_res = requests.get(self.base_url+'frozenEdge')
+        if temp_res.status_code == 200:
+            try:
+                self.last_seen_frozenEdgeHeight = json.loads(temp_res.content.decode('utf-8'))['result'][0]['height']
+                self.last_successful_frozenEdge_fetch_timestamp_seconds = getTimestampSeconds()
+            except:
+                self.last_failed_frozenEdge_fetch_timestamp_seconds = getTimestampSeconds()
+        else:
+            self.last_failed_frozenEdge_fetch_timestamp_seconds = getTimestampSeconds()
+
+
+
