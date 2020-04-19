@@ -2,7 +2,7 @@ import requests
 import json
 
 class NetworkObserver:
-    def __init__(self, ip_address, consider_missing_blocks=True, consider_frozen_edge_discrepancy=True, consider_fetching_unreliability=True,
+    def __init__(self, observer_identifier, ip_address, consider_missing_blocks=True, consider_frozen_edge_discrepancy=True, consider_fetching_unreliability=True,
                  chunk_size_missing_blocks=20, failed_fetch_minimum_seconds_passed=350,
                  allowed_frozenEdge_sync_discrepancy=5,url_prepend='http://', url_append='/api/'):
 
@@ -10,6 +10,7 @@ class NetworkObserver:
         self.chunk_size_missing_blocks = chunk_size_missing_blocks
         self.allowed_frozenEdge_sync_discrepancy = allowed_frozenEdge_sync_discrepancy
         self.failed_fetch_minimum_seconds_passed = failed_fetch_minimum_seconds_passed
+        self.observer_identifier = observer_identifier
         self.rolling_run_ids = [['', 0], ['', 0], ['', 0], ['', 0], ['', 0]]
 
         self.last_seen_frozenEdgeHeight = 0
