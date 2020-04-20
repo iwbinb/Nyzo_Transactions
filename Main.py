@@ -87,7 +87,7 @@ def menuHandler_AddNetworkObserver(error_raised):
     input_ip_address = input('*    //string// IP address: ')
     input_consider_missing_blocks = input('*    //boolean// Consider missing blocks [default=True]: ')
     input_consider_frozen_edge_discrepancy = input('*    //boolean// Consider frozen edge discrepancy [default=True]: ')
-    input_consider_fetching_unreliability = input('*    //boolean// Consider fetching unreliability [default=True]: ')
+    input_consider_fetching_reliability = input('*    //boolean// Consider fetching reliability [default=True]: ')
     input_chunk_size_missing_blocks = input('*    //int// Chunk size missing blocks [default=30]: ')
     input_failed_fetch_minimum_seconds_passed = input('*    //int// Failed fetch minimum seconds passed [default=350]: ')
     input_allowed_frozenEdge_sync_discrepancy = input('*    //int// Allowed frozenEdge sync discrepancy [default=5]: ')
@@ -104,8 +104,8 @@ def menuHandler_AddNetworkObserver(error_raised):
         else: input_consider_missing_blocks = True
         if len(input_consider_frozen_edge_discrepancy) > 0: input_consider_frozen_edge_discrepancy = bool(input_consider_frozen_edge_discrepancy)
         else: input_consider_frozen_edge_discrepancy = True
-        if len(input_consider_fetching_unreliability) > 0: input_consider_fetching_unreliability = bool(input_consider_fetching_unreliability)
-        else: input_consider_fetching_unreliability = True
+        if len(input_consider_fetching_reliability) > 0: input_consider_fetching_reliability = bool(input_consider_fetching_reliability)
+        else: input_consider_fetching_reliability = True
         if len(input_chunk_size_missing_blocks) > 0: input_chunk_size_missing_blocks = int(input_chunk_size_missing_blocks)
         else: input_chunk_size_missing_blocks = 30
         if len(input_failed_fetch_minimum_seconds_passed) > 0: input_failed_fetch_minimum_seconds_passed = int(input_failed_fetch_minimum_seconds_passed)
@@ -131,7 +131,7 @@ def menuHandler_AddNetworkObserver(error_raised):
         save_permanently=True,
         consider_missing_blocks=input_consider_missing_blocks,
         consider_frozen_edge_discrepancy=input_consider_frozen_edge_discrepancy,
-        consider_fetching_unreliability=input_consider_fetching_unreliability,
+        consider_fetching_reliability=input_consider_fetching_reliability,
         chunk_size_missing_blocks=input_chunk_size_missing_blocks,
         failed_fetch_minimum_seconds_passed=input_failed_fetch_minimum_seconds_passed,
         allowed_frozenEdge_sync_discrepancy=input_allowed_frozenEdge_sync_discrepancy,
