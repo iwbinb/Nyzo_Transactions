@@ -1,4 +1,5 @@
 from Configurations import Configurations, NetworkObserverConfigurations
+from helpers import getDateHuman
 import os
 import ast
 
@@ -15,9 +16,9 @@ def makePrettyUiLine(line, enclosing=False):
     line_length = 80
     pre = '*    '
     pre_line = pre+line
-    for key in printColor.len_dict:
+    for key in colorPrint.len_dict:
         if key in pre_line:
-            line_length += printColor.len_dict[key]
+            line_length += colorPrint.len_dict[key]
     line_diff = line_length - len(pre_line)
     for i in range(line_diff):
         if i == line_diff-1:
@@ -27,7 +28,7 @@ def makePrettyUiLine(line, enclosing=False):
 
     return pre_line
 
-class printColor:
+class colorPrint:
    PURPLE = '\033[95m'
    CYAN = '\033[96m'
    DARKCYAN = '\033[36m'
@@ -43,6 +44,9 @@ class printColor:
                "\033[92m":len(GREEN), "\033[93m":len(YELLOW), "\033[91m":len(RED),
                "\033[1m":len(BOLD), "\033[4m":len(UNDERLINE), "\033[0m":len(END)}
 
+def logPretty(to_log, color=colorPrint.GREEN):
+    print(makePrettyUiLine('[{}]: '.format(getDateHuman())+color+to_log+colorPrint.END))
+
 #
 
 def showMenu_ViewNetworkObserversSaved():
@@ -52,23 +56,89 @@ def showMenu_ViewNetworkObserversSaved():
         print(makePrettyUiLine('Total observers: '+str(len(dict_list))))
         for i in dict_list:
             print(makePrettyUiLine(''))
-            print(makePrettyUiLine('[observer_identifier]: '+printColor.BOLD+str(i['observer_identifier'])+printColor.END))
-            print(makePrettyUiLine('[ip_address]: '+printColor.BOLD+i['ip_address']+printColor.END))
-            print(makePrettyUiLine('[consider_missing_blocks]: ' +printColor.BOLD+ str(i['consider_missing_blocks'])+printColor.END))
-            print(makePrettyUiLine('[consider_frozen_edge_discrepancy]: ' +printColor.BOLD+ str(i['consider_frozen_edge_discrepancy'])+printColor.END))
-            print(makePrettyUiLine('[consider_fetching_unreliability]: ' +printColor.BOLD+ str(i['consider_fetching_unreliability'])+printColor.END))
-            print(makePrettyUiLine('[chunk_size_missing_blocks]: ' +printColor.BOLD+ str(i['chunk_size_missing_blocks'])+printColor.END))
-            print(makePrettyUiLine('[failed_fetch_minimum_seconds_passed]: ' +printColor.BOLD+ str(i['failed_fetch_minimum_seconds_passed'])+printColor.END))
-            print(makePrettyUiLine('[allowed_frozenEdge_sync_discrepancy]: ' +printColor.BOLD+ str(i['allowed_frozenEdge_sync_discrepancy'])+printColor.END))
-            print(makePrettyUiLine('[url_prepend]: ' +printColor.BOLD+ i['url_prepend']+printColor.END))
-            print(makePrettyUiLine('[url_append]: ' +printColor.BOLD+ i['url_append']+printColor.END))
+            print(makePrettyUiLine('[observer_identifier]: '+colorPrint.BOLD+str(i['observer_identifier'])+colorPrint.END))
+            print(makePrettyUiLine('[ip_address]: '+colorPrint.BOLD+i['ip_address']+colorPrint.END))
+            print(makePrettyUiLine('[consider_missing_blocks]: ' +colorPrint.BOLD+ str(i['consider_missing_blocks'])+colorPrint.END))
+            print(makePrettyUiLine('[consider_frozen_edge_discrepancy]: ' +colorPrint.BOLD+ str(i['consider_frozen_edge_discrepancy'])+colorPrint.END))
+            print(makePrettyUiLine('[consider_fetching_reliability]: ' +colorPrint.BOLD+ str(i['consider_fetching_reliability'])+colorPrint.END))
+            print(makePrettyUiLine('[chunk_size_missing_blocks]: ' +colorPrint.BOLD+ str(i['chunk_size_missing_blocks'])+colorPrint.END))
+            print(makePrettyUiLine('[failed_fetch_minimum_seconds_passed]: ' +colorPrint.BOLD+ str(i['failed_fetch_minimum_seconds_passed'])+colorPrint.END))
+            print(makePrettyUiLine('[allowed_frozenEdge_sync_discrepancy]: ' +colorPrint.BOLD+ str(i['allowed_frozenEdge_sync_discrepancy'])+colorPrint.END))
+            print(makePrettyUiLine('[url_prepend]: ' +colorPrint.BOLD+ i['url_prepend']+colorPrint.END))
+            print(makePrettyUiLine('[url_append]: ' +colorPrint.BOLD+ i['url_append']+colorPrint.END))
             print(makePrettyUiLine(''))
             print(makePrettyUiLine('##########          ##########          ##########          ##########'))
     print(makePrettyUiLine('', enclosing=True))
 #
 
-def menuHandler_AddNetworkObserver():
-    print('add')
+def menuHandler_AddNetworkObserver(error_raised):
+    global initialized_configurations
+    if error_raised:
+        print(makePrettyUiLine('', enclosing=True))
+        print(makePrettyUiLine(''))
+        print(makePrettyUiLine('A typing error was raised, please try again'))
+        print(makePrettyUiLine('To view the main menu, use the "main" command'))
+        print(makePrettyUiLine(''))
+
+    print(makePrettyUiLine(''))
+    print(makePrettyUiLine('Fill out the following parameters, press [ENTER] to use the default value'))
+    print(makePrettyUiLine(''))
+
+    input_ip_address = input('*    //string// IP address: ')
+    input_consider_missing_blocks = input('*    //boolean// Consider missing blocks [default=True]: ')
+    input_consider_frozen_edge_discrepancy = input('*    //boolean// Consider frozen edge discrepancy [default=True]: ')
+    input_consider_fetching_unreliability = input('*    //boolean// Consider fetching unreliability [default=True]: ')
+    input_chunk_size_missing_blocks = input('*    //int// Chunk size missing blocks [default=30]: ')
+    input_failed_fetch_minimum_seconds_passed = input('*    //int// Failed fetch minimum seconds passed [default=350]: ')
+    input_allowed_frozenEdge_sync_discrepancy = input('*    //int// Allowed frozenEdge sync discrepancy [default=5]: ')
+    input_url_prepend = input('*    //string// URL prepend [default=http://]: ')
+    input_url_append = input('*    //string// URL append [default=/api/]: ')
+
+    try:
+        if len(input_ip_address.split('.')) == 4:
+            input_ip_address = str(input_ip_address)
+        else:
+            raise TypeError
+
+        if len(input_consider_missing_blocks) > 0: input_consider_missing_blocks = bool(input_consider_missing_blocks)
+        else: input_consider_missing_blocks = True
+        if len(input_consider_frozen_edge_discrepancy) > 0: input_consider_frozen_edge_discrepancy = bool(input_consider_frozen_edge_discrepancy)
+        else: input_consider_frozen_edge_discrepancy = True
+        if len(input_consider_fetching_unreliability) > 0: input_consider_fetching_unreliability = bool(input_consider_fetching_unreliability)
+        else: input_consider_fetching_unreliability = True
+        if len(input_chunk_size_missing_blocks) > 0: input_chunk_size_missing_blocks = int(input_chunk_size_missing_blocks)
+        else: input_chunk_size_missing_blocks = 30
+        if len(input_failed_fetch_minimum_seconds_passed) > 0: input_failed_fetch_minimum_seconds_passed = int(input_failed_fetch_minimum_seconds_passed)
+        else: input_failed_fetch_minimum_seconds_passed = 350
+        if len(input_allowed_frozenEdge_sync_discrepancy) > 0: input_allowed_frozenEdge_sync_discrepancy = int(input_allowed_frozenEdge_sync_discrepancy)
+        else: input_allowed_frozenEdge_sync_discrepancy = 5
+
+        if len(input_url_prepend) > 0:
+            if 'http' in input_url_prepend: input_url_prepend = str(input_url_prepend)
+            else: raise TypeError
+        else: input_url_prepend = 'http://'
+
+        if len(input_url_append) > 0:
+            if '/' in input_url_append: input_url_append = str(input_url_append)
+            else: raise TypeError
+        else: input_url_append = '/api/'
+
+    except:
+        menuHandler_AddNetworkObserver(error_raised=True)
+
+    initialized_NetworkObserver_configurations.addNewNetworkObserver(
+        ip_address=input_ip_address,
+        save_permanently=True,
+        consider_missing_blocks=input_consider_missing_blocks,
+        consider_frozen_edge_discrepancy=input_consider_frozen_edge_discrepancy,
+        consider_fetching_unreliability=input_consider_fetching_unreliability,
+        chunk_size_missing_blocks=input_chunk_size_missing_blocks,
+        failed_fetch_minimum_seconds_passed=input_failed_fetch_minimum_seconds_passed,
+        allowed_frozenEdge_sync_discrepancy=input_allowed_frozenEdge_sync_discrepancy,
+        url_prepend=input_url_prepend,
+        url_append=input_url_append
+    )
+
 
 def showMenu_AddNetworkObserver():
     print('add')
@@ -118,7 +188,7 @@ def showMainMenu():
     main_menu = """{}\n{}\n{}\n{}\n{}\n{}\n{}""".format(
         makePrettyUiLine(''),
         makePrettyUiLine('[1] - View Network Observers saved on disk'),
-        makePrettyUiLine('[2] - Add Network Observer'),
+        makePrettyUiLine('[2] - Add Network Observer to disk'),
         makePrettyUiLine('[3] - Update Network Observer from disk'),
         makePrettyUiLine('[4] - Delete Network Observer from disk'),
         makePrettyUiLine('[5] - Start'),
@@ -127,14 +197,15 @@ def showMainMenu():
     )
     print(main_menu)
     mainMenuHandler(error_raised=False)
+    logPretty('main menu shown')
 
 def showUiStart(version):
     print("""
 ********************************************************************************
 *                             _ __  _   _ _______                              *
-*                            | '_ \| | | |_  / _ \                             *     
+*                            |  _ \| | | |_  / _ \                             *     
 *                            | | | | |_| |/ / (_) |                            *
-*                            |_| |_|\__, /___\___/                             *
+*                            |_| |_|\__  /___\___/                             *
 *                                   |___/                                      *
 *                                                                              *
 *                            Nyzo_Transactions v{}                            *
@@ -151,9 +222,10 @@ def initiate_MainLoop():
 #
 
 if __name__ == "__main__":
-    configurations = Configurations()
-    if configurations.showGuiOnStartup:
-        showUiStart(configurations.version)
+    initialized_configurations = Configurations()
+    initialized_NetworkObserver_configurations = NetworkObserverConfigurations(amount_of_network_observers_compliant_minimum_percentage=initialized_configurations.amount_of_network_observers_compliant_minimum_percentage)
+    if initialized_configurations.showGuiOnStartup:
+        showUiStart(initialized_configurations.version)
     else:
         while True:
             initiate_MainLoop()

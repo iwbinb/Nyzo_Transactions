@@ -2,7 +2,7 @@ import requests
 import json
 
 class NetworkObserver:
-    def __init__(self, observer_identifier, ip_address, consider_missing_blocks=True, consider_frozen_edge_discrepancy=True, consider_fetching_unreliability=True,
+    def __init__(self, observer_identifier, ip_address, consider_missing_blocks=True, consider_frozen_edge_discrepancy=True, consider_fetching_reliability=True,
                  chunk_size_missing_blocks=20, failed_fetch_minimum_seconds_passed=350,
                  allowed_frozenEdge_sync_discrepancy=5,url_prepend='http://', url_append='/api/'):
 
@@ -29,7 +29,7 @@ class NetworkObserver:
 
         self.consider_missing_blocks = consider_missing_blocks
         self.consider_frozen_edge_discrepancy = consider_frozen_edge_discrepancy
-        self.consider_fetching_unreliability = consider_fetching_unreliability
+        self.consider_fetching_reliability = consider_fetching_reliability
 
     def assignNewRunId(self):
         from helpers import getTimestampSeconds, generateRunId
