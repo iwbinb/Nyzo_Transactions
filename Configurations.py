@@ -70,7 +70,7 @@ class NetworkObserverConfigurations:
         with open('stored_NetworkObservers', 'r') as f:
             dict_list = ast.literal_eval(f.readline())
             for i in dict_list:
-                self.addNewNetworkObserver(i['ip_address'], False, i['consider_missing_blocks'], i['consider_frozen_edge_discrepancy'], i['consider_fetching_reliability'], i['chunk_size_missing_blocks'], i['failed_fetch_minimum_seconds_passed'], i['allowed_frozenEdge_sync_discrepancy'], i['url_prepend'], i['url_append'], existing_observer_identifier=i['observer_identifier'])
+                self.addNewNetworkObserver(i['ip_address'], False, bool(i['consider_missing_blocks']), bool(i['consider_frozen_edge_discrepancy']), bool(i['consider_fetching_reliability']), i['chunk_size_missing_blocks'], i['failed_fetch_minimum_seconds_passed'], i['allowed_frozenEdge_sync_discrepancy'], i['url_prepend'], i['url_append'], existing_observer_identifier=i['observer_identifier'])
 
     def getAmountOfStoredNetworkObserversFromDisk(self):
         with open('stored_NetworkObservers', 'r') as f:
