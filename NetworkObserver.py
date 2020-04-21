@@ -6,11 +6,18 @@ class NetworkObserver:
                  chunk_size_missing_blocks=20, failed_fetch_minimum_seconds_passed=350,
                  allowed_frozenEdge_sync_discrepancy=5,url_prepend='http://', url_append='/api/'):
 
-        self.base_url = url_prepend + ip_address + url_append
-        self.chunk_size_missing_blocks = chunk_size_missing_blocks
-        self.allowed_frozenEdge_sync_discrepancy = allowed_frozenEdge_sync_discrepancy
-        self.failed_fetch_minimum_seconds_passed = failed_fetch_minimum_seconds_passed
         self.observer_identifier = observer_identifier
+        self.ip_address = ip_address
+        self.consider_missing_blocks = consider_missing_blocks
+        self.consider_frozen_edge_discrepancy = consider_frozen_edge_discrepancy
+        self.consider_fetching_reliability = consider_fetching_reliability
+        self.chunk_size_missing_blocks = chunk_size_missing_blocks
+        self.failed_fetch_minimum_seconds_passed = failed_fetch_minimum_seconds_passed
+        self.allowed_frozenEdge_sync_discrepancy = allowed_frozenEdge_sync_discrepancy
+        self.url_prepend = url_prepend
+        self.url_append = url_append
+
+        self.base_url = url_prepend + ip_address + url_append
         self.rolling_run_ids = [['', 0], ['', 0], ['', 0], ['', 0], ['', 0]]
 
         self.last_seen_frozenEdgeHeight = 0
@@ -26,10 +33,6 @@ class NetworkObserver:
 
         self.frozenEdge_fetching_reliable = False
         self.frozenEdge_in_sync = False
-
-        self.consider_missing_blocks = consider_missing_blocks
-        self.consider_frozen_edge_discrepancy = consider_frozen_edge_discrepancy
-        self.consider_fetching_reliability = consider_fetching_reliability
 
     def assignNewRunId(self):
         from helpers import getTimestampSeconds, generateRunId

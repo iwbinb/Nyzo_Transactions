@@ -1,4 +1,5 @@
 from NetworkObserver import NetworkObserver
+from helpers import logPretty
 import json,ast
 
 class Configurations:
@@ -29,6 +30,7 @@ class NetworkObserverConfigurations:
                 existing.pop(existing.index(i))
         existing.append(new_configuration_dict); new = existing
         with open('stored_NetworkObservers', 'w') as f: f.write(json.dumps(new))
+        logPretty('Successfully replaced existing configurations for NetworkObserver {}'.format(observer_identifier))
         self.loadStoredNetworkObserversFromDisk()
 
     def deleteExistingNetworkObserver(self, observer_identifier):
@@ -48,6 +50,7 @@ class NetworkObserverConfigurations:
         if existing_observer_identifier is not None: IdForNetworkObserver = existing_observer_identifier
         new_observer = NetworkObserver(IdForNetworkObserver, ip_address, consider_missing_blocks, consider_frozen_edge_discrepancy, consider_fetching_reliability, chunk_size_missing_blocks, failed_fetch_minimum_seconds_passed, allowed_frozenEdge_sync_discrepancy, url_prepend, url_append)
         self.loadedNetworkObservers.append(new_observer)
+        logPretty('Successfully loaded NetworkObserver {} from disk into loadedNetworkObservers'.format(IdForNetworkObserver))
         if save_permanently:
             self.saveNewNetworkObserver({
                 'observer_identifier': IdForNetworkObserver,
@@ -71,7 +74,7 @@ class NetworkObserverConfigurations:
 
     def getAmountOfStoredNetworkObserversFromDisk(self):
         with open('stored_NetworkObservers', 'r') as f:
+            logPretty('Fetching the amount of stored Network Observers on disk')
             return len(ast.literal_eval(f.readline()))
-
 
 
