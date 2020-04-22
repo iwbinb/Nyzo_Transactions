@@ -1,5 +1,5 @@
 from Configurations import Configurations, NetworkObserverConfigurations
-from helpers import clearConsole, printEncloseInput, makePrettyUiLine, colorPrint, logPretty, getDateHuman
+from helpers import getTimestampSeconds ,clearConsole, printEncloseInput, makePrettyUiLine, colorPrint, logPretty, getDateHuman
 import ast
 
 def showMenu_ViewNetworkObserversSaved():
@@ -22,6 +22,7 @@ def showMenu_ViewNetworkObserversSaved():
             print(makePrettyUiLine(''))
             print(makePrettyUiLine('##########          ##########          ##########          ##########'))
     print(makePrettyUiLine('', enclosing=True))
+    showMainMenu()
 #
 
 def menuHandler_AddNetworkObserver(error_raised):
@@ -53,11 +54,11 @@ def menuHandler_AddNetworkObserver(error_raised):
         else:
             raise TypeError
 
-        if len(input_consider_missing_blocks) > 0: input_consider_missing_blocks = bool(input_consider_missing_blocks)
+        if len(input_consider_missing_blocks) > 0: input_consider_missing_blocks = ast.literal_eval(input_consider_missing_blocks)
         else: input_consider_missing_blocks = True
-        if len(input_consider_frozen_edge_discrepancy) > 0: input_consider_frozen_edge_discrepancy = bool(input_consider_frozen_edge_discrepancy)
+        if len(input_consider_frozen_edge_discrepancy) > 0: input_consider_frozen_edge_discrepancy = ast.literal_eval(input_consider_frozen_edge_discrepancy)
         else: input_consider_frozen_edge_discrepancy = True
-        if len(input_consider_fetching_reliability) > 0: input_consider_fetching_reliability = bool(input_consider_fetching_reliability)
+        if len(input_consider_fetching_reliability) > 0: input_consider_fetching_reliability = ast.literal_eval(input_consider_fetching_reliability)
         else: input_consider_fetching_reliability = True
         if len(input_chunk_size_missing_blocks) > 0: input_chunk_size_missing_blocks = int(input_chunk_size_missing_blocks)
         else: input_chunk_size_missing_blocks = 30
@@ -92,10 +93,11 @@ def menuHandler_AddNetworkObserver(error_raised):
         url_append=input_url_append
     )
 
+    showMainMenu()
+
 
 def menuHandler_UpdateNetworkObserver(error_raised=False):
     global initialized_NetworkObserver_configurations
-    showMenu_ViewNetworkObserversSaved()
     if error_raised:
         print(makePrettyUiLine('', enclosing=True))
         print(makePrettyUiLine(''))
@@ -140,11 +142,11 @@ def menuHandler_UpdateNetworkObserver(error_raised=False):
                     raise TypeError
             else: input_ip_address = selected_observer.ip_address
 
-            if len(input_consider_missing_blocks) > 0: input_consider_missing_blocks = bool(input_consider_missing_blocks)
+            if len(input_consider_missing_blocks) > 0: input_consider_missing_blocks = ast.literal_eval(input_consider_missing_blocks)
             else: input_consider_missing_blocks = selected_observer.consider_missing_blocks
-            if len(input_consider_frozen_edge_discrepancy) > 0: input_consider_frozen_edge_discrepancy = bool(input_consider_frozen_edge_discrepancy)
+            if len(input_consider_frozen_edge_discrepancy) > 0: input_consider_frozen_edge_discrepancy = ast.literal_eval(input_consider_frozen_edge_discrepancy)
             else: input_consider_frozen_edge_discrepancy = selected_observer.consider_frozen_edge_discrepancy
-            if len(input_consider_fetching_reliability) > 0: input_consider_fetching_reliability = bool(input_consider_fetching_reliability)
+            if len(input_consider_fetching_reliability) > 0: input_consider_fetching_reliability = ast.literal_eval(input_consider_fetching_reliability)
             else: input_consider_fetching_reliability = selected_observer.consider_fetching_reliability
             if len(input_chunk_size_missing_blocks) > 0: input_chunk_size_missing_blocks = int(input_chunk_size_missing_blocks)
             else: input_chunk_size_missing_blocks = selected_observer.chunk_size_missing_blocks
@@ -178,20 +180,51 @@ def menuHandler_UpdateNetworkObserver(error_raised=False):
                     "url_prepend": input_url_prepend,
                     "url_append": input_url_append
                 })
+
         except:
             menuHandler_UpdateNetworkObserver(error_raised=True)
 
 
 def showMenu_UpdateNetworkObserver():
     menuHandler_UpdateNetworkObserver()
+    showMainMenu()
 
-def menuHandler_DeleteNetworkObserver():
-    print('add')
+def menuHandler_DeleteNetworkObserver(error_raised=False):
+    global initialized_NetworkObserver_configurations
+    if error_raised:
+        print(makePrettyUiLine('', enclosing=True))
+        print(makePrettyUiLine(''))
+        print(makePrettyUiLine('A typing error was raised, please try again'))
+        print(makePrettyUiLine(''))
+
+    print(makePrettyUiLine(''))
+    print(makePrettyUiLine('Fill out the following parameter'))
+    print(makePrettyUiLine(''))
+    input_observer_identifier = input("*    //int// Observer identifier: ")
+
+    observer_exists = False
+    selected_observer = None
+
+    for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+        if int(input_observer_identifier) == NetworkObserver.observer_identifier:
+            observer_exists = True
+            selected_observer = NetworkObserver
+
+    if not observer_exists:
+        logPretty('Observer does not exist on disk or has not been loaded into memory')
+        menuHandler_UpdateNetworkObserver(error_raised=True)
+
+    if observer_exists:
+        initialized_NetworkObserver_configurations.deleteExistingNetworkObserver(selected_observer.observer_identifier)
+
 
 def showMenu_DeleteNetworkObserver():
-    print('del')
+    menuHandler_DeleteNetworkObserver()
+    showMainMenu()
 
-#
+def disableMenuOnRun():
+    global initialized_configurations
+    initialized_configurations.disableMenu()
 
 def mainMenuHandler(error_raised):
     if error_raised:
@@ -211,6 +244,8 @@ def mainMenuHandler(error_raised):
     elif input_result is '4':
         showMenu_DeleteNetworkObserver()
     elif input_result is '5':
+        disableMenuOnRun()
+    elif input_result is '6':
         initiate_MainLoop()
     elif input_result == 'main':
         showMainMenu()
@@ -227,7 +262,8 @@ def showMainMenu():
         makePrettyUiLine('[2] - Add Network Observer to disk'),
         makePrettyUiLine('[3] - Update Network Observer from disk'),
         makePrettyUiLine('[4] - Delete Network Observer from disk'),
-        makePrettyUiLine('[5] - Start'),
+        makePrettyUiLine('[5] - Disable this menu on run'),
+        makePrettyUiLine('[6] - Start'),
         makePrettyUiLine(''),
         makePrettyUiLine('', enclosing=True)
     )
@@ -253,15 +289,114 @@ def showUiStart(version):
 #
 
 def initiate_MainLoop():
-    print('main')
+    global amount_of_loops
+    amount_of_loops +=1
+    logPretty('Initiating loop {}'.format(str(amount_of_loops)))
 
-#
+    from time import sleep; sleep(7)
+
+    #- used to temporarily store the frozen edge results
+    frozenEdge_fetches = []
+    #- generate a new run_id and timestamp
+    #- query the frozen edge from each individual network observer
+    for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+        NetworkObserver.assignNewRunId()
+        fetch_timestamp = getTimestampSeconds()
+        NetworkObserver.fetchFrozenEdge()
+        frozenEdge_fetches.append({
+            'observer_identifier': NetworkObserver.observer_identifier,
+            'ip_address': NetworkObserver.ip_address,
+            'last_seen_frozenEdgeHeight': NetworkObserver.last_seen_frozenEdgeHeight,
+            'last_failed_frozenEdge_fetch_timestamp_seconds': NetworkObserver.last_failed_frozenEdge_fetch_timestamp_seconds,
+            'last_successful_frozenEdge_fetch_timestamp_seconds': NetworkObserver.last_successful_frozenEdge_fetch_timestamp_seconds,
+            'failed_fetch_minimum_seconds_passed': NetworkObserver.failed_fetch_minimum_seconds_passed,
+            'timestamp_problematic': False,
+            'fetch_timestamp': fetch_timestamp,
+            'deviation_from_highest_found': None,
+            'deviation_problematic': False,
+            'consider_frozen_edge_discrepancy': NetworkObserver.consider_frozen_edge_discrepancy,
+            'allowed_frozenEdge_sync_discrepancy': NetworkObserver.allowed_frozenEdge_sync_discrepancy,
+        })
+
+    #- uses the temporary results to assert highest found frozenEdgeHeight
+    highest_frozenEdgeHeight = 0
+
+    #- assert highest
+    for frozenEdge_fetch in frozenEdge_fetches:
+        if frozenEdge_fetch['last_seen_frozenEdgeHeight'] > highest_frozenEdgeHeight:
+            highest_frozenEdgeHeight = frozenEdge_fetch['last_seen_frozenEdgeHeight']
+
+    #- assert problematic deviation in regards to frozenEdgeHeight
+    for frozenEdge_fetch in frozenEdge_fetches:
+        if frozenEdge_fetch['consider_frozen_edge_discrepancy']:
+            logPretty('Checking if frozenEdgeHeight deviates per the configured allowed_frozenEdge_sync_discrepancy for NetworkObserver {}'.format(frozenEdge_fetch['ip_address']))
+            if (highest_frozenEdgeHeight - frozenEdge_fetch['last_seen_frozenEdgeHeight']) > frozenEdge_fetch['allowed_frozenEdge_sync_discrepancy']:
+                frozenEdge_fetch['deviation'] = (highest_frozenEdgeHeight - frozenEdge_fetch['last_seen_frozenEdgeHeight'])
+                frozenEdge_fetch['deviation_problematic'] = True
+                logPretty('frozenEdgeHeight out of boundaries with deviation={} for NetworkObserver {}'.format(frozenEdge_fetch['deviation'], frozenEdge_fetch['ip_address']), color=colorPrint.RED)
+            else:
+                frozenEdge_fetch['deviation'] = (highest_frozenEdgeHeight - frozenEdge_fetch['last_seen_frozenEdgeHeight'])
+                logPretty('frozenEdgeHeight NOT out of boundaries with deviation={} for NetworkObserver {} '.format(frozenEdge_fetch['deviation'], frozenEdge_fetch['ip_address']))
+        else:
+            logPretty('Disregarding frozenEdgeHeight discrepancy check due to configuration of consider_frozen_edge_discrepancy for NetworkObserver {}'.format(frozenEdge_fetch['ip_address']), color=colorPrint.YELLOW)
+
+    for frozenEdge_fetch in frozenEdge_fetches:
+        logPretty('Checking if last failed frozenEdge fetch resides far enough in history per the configurations for NetworkObserver {}'.format(frozenEdge_fetch['ip_address']))
+        if (frozenEdge_fetch['last_failed_frozenEdge_fetch_timestamp_seconds'] + frozenEdge_fetch['failed_fetch_minimum_seconds_passed']) > frozenEdge_fetch['fetch_timestamp']:
+            logPretty('Last failed frozenEdge fetch NOT old enough per the configuration minimum for NetworkObserver {}'.format(frozenEdge_fetch['ip_address'], color=colorPrint.RED))
+            frozenEdge_fetch['timestamp_problematic'] = True
+
+
+    # for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+    #     print(NetworkObserver.last_seen_frozenEdgeHeight)
+    #     print(NetworkObserver.last_failed_frozenEdge_fetch_timestamp_seconds)
+    #     print(NetworkObserver.last_successful_frozenEdge_fetch_timestamp_seconds)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        # print(NetworkObserver.observer_identifier)
+        # print(NetworkObserver.ip_address)
+        # print(NetworkObserver.consider_missing_blocks)
+        # print(NetworkObserver.consider_frozen_edge_discrepancy)
+        # print(NetworkObserver.consider_fetching_reliability)
+        # print(NetworkObserver.chunk_size_missing_blocks)
+        # print(NetworkObserver.failed_fetch_minimum_seconds_passed)
+        # print(NetworkObserver.allowed_frozenEdge_sync_discrepancy)
+        # print(NetworkObserver.url_prepend)
+        # print(NetworkObserver.url_append)
+        # print(NetworkObserver.base_url)
+        # print(NetworkObserver.rolling_run_ids)
+        # print(NetworkObserver.last_seen_frozenEdgeHeight)
+        # print(NetworkObserver.last_failed_frozenEdge_fetch_timestamp_seconds)
+        # print(NetworkObserver.last_successful_frozenEdge_fetch_timestamp_seconds)
+        # print(NetworkObserver.last_seen_transaction_blocks)
+        # print(NetworkObserver.last_failed_transaction_fetch_timestamp_seconds)
+        # print(NetworkObserver.last_successful_transaction_fetch_timestamp_seconds)
+        # print(NetworkObserver.block_fetching_reliable)
+        # print(NetworkObserver.missing_blocks_in_chunk)
+        # print(NetworkObserver.frozenEdge_fetching_reliable)
+        # print(NetworkObserver.frozenEdge_in_sync)
+
 
 if __name__ == "__main__":
+    amount_of_loops = 0
     initialized_configurations = Configurations()
     initialized_NetworkObserver_configurations = NetworkObserverConfigurations(amount_of_network_observers_compliant_minimum_percentage=initialized_configurations.amount_of_network_observers_compliant_minimum_percentage)
     if initialized_configurations.showGuiOnStartup:
         showUiStart(initialized_configurations.version)
     else:
+        logPretty('showGuiOnStartup has been disabled, initiating main loop')
         while True:
             initiate_MainLoop()

@@ -1,5 +1,6 @@
 import requests
 import json
+from helpers import logPretty, colorPrint
 
 class NetworkObserver:
     def __init__(self, observer_identifier, ip_address, consider_missing_blocks=True, consider_frozen_edge_discrepancy=True, consider_fetching_reliability=True,
@@ -38,17 +39,22 @@ class NetworkObserver:
         from helpers import getTimestampSeconds, generateRunId
         self.rolling_run_ids.pop(0)
         self.rolling_run_ids.append([generateRunId(), getTimestampSeconds()])
+        logPretty('Generating new run id and timestamp for NetworkObserver {}'.format(self.ip_address))
 
     def fetchFrozenEdge(self):
         from helpers import getTimestampSeconds
+        logPretty('Attempting to fetch frozenEdgeHeight for NetworkObserver {}'.format(self.ip_address))
         temp_res = requests.get(self.base_url+'frozenEdge')
         if temp_res.status_code == 200:
             try:
+                logPretty('frozenEdgeHeight fetch successful - NetworkObserver {}'.format(self.ip_address))
                 self.last_seen_frozenEdgeHeight = json.loads(temp_res.content.decode('utf-8'))['result'][0]['height']
                 self.last_successful_frozenEdge_fetch_timestamp_seconds = getTimestampSeconds()
             except:
+                logPretty('Failed to decode JSON from successful frozenEdgeHeight fetch', color=colorPrint.RED)
                 self.last_failed_frozenEdge_fetch_timestamp_seconds = getTimestampSeconds()
         else:
+            logPretty('Failed to fetch frozenEdgeHeight from NetworkObserver {}'.format(self.ip_address), color=colorPrint.RED)
             self.last_failed_frozenEdge_fetch_timestamp_seconds = getTimestampSeconds()
 
 
