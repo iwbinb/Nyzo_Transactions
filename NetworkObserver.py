@@ -57,6 +57,9 @@ class NetworkObserver:
             logPretty('Failed to fetch frozenEdgeHeight from NetworkObserver {}'.format(self.ip_address), color=colorPrint.RED)
             self.last_failed_frozenEdge_fetch_timestamp_seconds = getTimestampSeconds()
 
+    def discardPreviousRunTransactions(self):
+        self.last_seen_transaction_blocks = []
+
     def fetchTransactionsForBlock(self, block_height):
         from helpers import getTimestampSeconds
         # logPretty('Attempting to fetch transactions for blockHeight {} from NetworkObserver {}'.format(block_height, self.ip_address))
@@ -67,7 +70,6 @@ class NetworkObserver:
                 self.last_successful_transaction_fetch_timestamp_seconds = getTimestampSeconds()
                 response_decoded = json.loads(temp_res.content.decode('utf-8'))
                 if len(response_decoded['errors']) == 0:
-                    self.last_seen_transaction_blocks = [] # the previous loop's results are discarded here
                     for transaction in response_decoded['result']:
                         self.last_seen_transaction_blocks.append(transaction)
                 else:

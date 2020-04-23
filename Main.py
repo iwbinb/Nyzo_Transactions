@@ -1,7 +1,7 @@
 from Configurations import Configurations, NetworkObserverConfigurations
 from helpers import getTimestampSeconds ,clearConsole, printEncloseInput, makePrettyUiLine, colorPrint, logPretty, getDateHuman
 import ast
-from Mongo import initializeMongo
+from Mongo import initializeMongo, checkIfTransactionInDatabase, addTransactionToDatabase
 
 def showMenu_ViewNetworkObserversSaved():
     with open('stored_NetworkObservers', 'r') as f:
@@ -322,7 +322,6 @@ def initiate_MainLoop():
     #- uses the temporary results to assert highest found frozenEdgeHeight
     highest_frozenEdgeHeight = 0
 
-    #- assert highest
     for frozenEdge_fetch in frozenEdge_fetches:
         if frozenEdge_fetch['last_seen_frozenEdgeHeight'] > highest_frozenEdgeHeight:
             highest_frozenEdgeHeight = frozenEdge_fetch['last_seen_frozenEdgeHeight']
@@ -374,6 +373,7 @@ def initiate_MainLoop():
     # use these assertions to determine if we want to try and fetch transactions from the nodes
     for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
         if NetworkObserver.frozenEdge_in_sync and NetworkObserver.frozenEdge_fetching_reliable:
+            NetworkObserver.discardPreviousRunTransactions() # previous run's transactions are discarded to start fresh
             # the heights for transaction fetching are determined according to a network observer's frozenEdgeHeight
             height_start = NetworkObserver.last_seen_frozenEdgeHeight - NetworkObserver.chunk_size_missing_blocks
             height_end = NetworkObserver.last_seen_frozenEdgeHeight
@@ -478,8 +478,49 @@ def initiate_MainLoop():
             else:
                 logPretty('Transactions will not be processed for defiant NetworkObserver {}'.format(NetworkObserver.ip_address))
 
-    # the transactions from the temporary list are added to the database
+    # only unique transactions will be added to the database
+    logPretty('Amount of transactions before uniqueness filter: {}'.format(len(transactionsForDatabase)))
+    transactionsUniqueForDatabase = []
+    for transaction in transactionsForDatabase:
+        if not checkIfTransactionInDatabase(transaction['transactionNyzoString']):
+            transactionsUniqueForDatabase.append(transaction)
 
+    # some variables are fetched from NetworkObservers
+    # this is custom data which will be added to the transaction dict below
+    current_run_id = ''
+    amt_compliant_nodes = len(compliant_NetworkObserver_identifiers)
+    amt_defiant_nodes = len(defiant_NetworkObserver_identifiers)
+
+    for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+        current_run_id = NetworkObserver.rolling_run_ids[4][0] # the last one we appended
+
+    # the unique transactions are added to the database, some custom data is added to the transaction dict
+    logPretty('Amount of transactions after uniqueness filter: {}'.format(len(transactionsUniqueForDatabase)))
+
+    amount_of_irrelevant_transactions = 0 # this pertains to the storeSpecificAddressTransactions filtration
+
+    if initialized_configurations.storeSpecificAddressTransactions:
+        logPretty('storeSpecificAddressTransactions is enabled, not all transactions will be saved!',color=colorPrint.YELLOW)
+
+    for transaction in transactionsUniqueForDatabase:
+        ship_to_database = False
+        if initialized_configurations.storeSpecificAddressTransactions:
+            if transaction['receiverIdentifier'] in initialized_configurations.specificAddressListRaw or transaction['senderIdentifier'] in initialized_configurations.specificAddressListRaw:
+                logPretty('receiverIdentifier or senderIdentifier matches an address specified in specificAddressListRaw')
+                ship_to_database = True
+            else:
+                amount_of_irrelevant_transactions += 1
+        else:
+            ship_to_database = True
+
+        if ship_to_database:
+            transaction['run_id'] = current_run_id
+            transaction['amt_compliant_nodes'] = amt_compliant_nodes
+            transaction['amt_defiant_nodes'] = amt_defiant_nodes
+            addTransactionToDatabase(transaction)
+
+    if amount_of_irrelevant_transactions > 0:
+        logPretty('Amount of transactions skipped due to storeSpecificAddressTransactions: {}'.format(amount_of_irrelevant_transactions))
 
     # the events for the network observers are added to the database
 

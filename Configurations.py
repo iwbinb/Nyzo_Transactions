@@ -1,5 +1,5 @@
 from NetworkObserver import NetworkObserver
-from helpers import logPretty
+from helpers import logPretty, colorPrint
 import json,ast
 
 class Configurations:
@@ -10,6 +10,20 @@ class Configurations:
         self.showGuiOnStartup = ast.literal_eval(self.dict_config['showGuiOnStartup'])
         self.version = self.dict_config['version']
         self.amount_of_network_observers_compliant_minimum_percentage = self.dict_config['amount_of_network_observers_compliant_minimum_percentage']
+
+        # both in and outgoing are saved if enabled and listed in specificAddressListRaw
+        self.storeSpecificAddressTransactions = ast.literal_eval(self.dict_config['storeSpecificAddressTransactions'])
+        self.specificAddressListRaw = self.dict_config['specificAddressListRaw']
+
+        if self.storeSpecificAddressTransactions and len(self.specificAddressListRaw) == 0:
+            logPretty('storeSpecificAddressTransactions is enabled in the stored_Configurations file but no\n'
+                      'addresses were given for which transactions have to be saved.\n'
+                      'This would make running the application pointless, please disable the parameter or add an address to the list.', color=colorPrint.RED)
+            exit()
+
+        if self.storeSpecificAddressTransactions and len(self.specificAddressListRaw) > 0:
+            logPretty('storeSpecificAddressTransactions is enabled and only transactions sent to the given set of\n'
+                      'raw Nyzo address identifiers will be saved.\n\n>>>> NyzoString identifiers WILL NOT WORK! <<<<', color=colorPrint.YELLOW)
 
     def disableMenu(self):
         self.dict_config['showGuiOnStartup'] = str(False).capitalize()

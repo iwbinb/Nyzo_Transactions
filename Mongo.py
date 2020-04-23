@@ -26,15 +26,22 @@ def addTransactionToDatabase(transaction_dict):
     global mongoDatabase
     global mongoCollectionTransactions
     try:
+        # omitted insertion values = typeValue dict
         logPretty('Adding transaction to database tx_id: {}'.format(transaction_dict['transactionNyzoString']))
         return mongoCollectionTransactions.insert_one({
-            # custom
             'run_id': transaction_dict['run_id'],
-            'amt_compliant_nodes': transaction_dict['compliant_nodes'],
-            'amt_defiant_nodes': transaction_dict['defiant_nodes']
-
-            # from original json
-            # TODO
+            'amt_compliant_nodes': transaction_dict['amt_compliant_nodes'],
+            'amt_defiant_nodes': transaction_dict['amt_defiant_nodes'],
+            'height': transaction_dict['height'],
+            'timestampMilliseconds': transaction_dict['timestampMilliseconds'],
+            'type': transaction_dict['type'],
+            'amount': float(transaction_dict['amount'][1:]),  # the first character returned by the api is n
+            'receiverIdentifier': transaction_dict['receiverIdentifier'],
+            'senderIdentifier': transaction_dict['senderIdentifier'],
+            'previousHashHeight': transaction_dict['previousHashHeight'],
+            'senderData': transaction_dict['senderData'],
+            'senderDataBytes': transaction_dict['senderDataBytes'],
+            'transactionNyzoString': transaction_dict['transactionNyzoString'],
         })
     except KeyError as e:
         logPretty('{} - addTransactionToDatabase failed to get value of transaction dict item'.format(e), color=colorPrint.RED)

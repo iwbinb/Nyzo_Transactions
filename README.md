@@ -54,8 +54,7 @@ needs to be utilized *(last_seen_frozenEdgeHeight-n)*range(chunk_size_missing_bl
 - the results are stored in *last_seen_transaction_blocks*
 - depending on the results now stored in *last_seen_transaction_blocks*, the *block_fetching_reliable* param is either set to True or False:
 it considers the *failed_fetch_minimum_seconds_passed* for comparing *last_failed_transaction_fetch_timestamp_seconds* and *last_successful_transaction_fetch_timestamp_seconds* (similar principle as with frozenedge, but for blocks)
-- (depending on whether the *last_seen_transaction_blocks* contains (successful fetch communication + block available on node) all blocks, 
-the *missing_blocks_in_chunk* param is either set to True or False) No
+- the *missing_blocks_in_chunk* parameter is available in the code but is not used
 
 
 The next bit of the loop will make use of 3 configurable parameters:
@@ -76,6 +75,7 @@ transaction data has not been disregarded, will be disregarded as well
 This means that at this point, there are no transactions to process, as there are too little nodes which are working properly according to the demanded minimum
 - if the *amount_of_network_observers_compliant_minimum* is however met, the transaction data from the nodes from which transaction data has not been disregarded
 will be stored in a temporary list with dicts
+- if *storeSpecificAddressTransactions* is enabled in the stored_Configurations, only transactions sent to and from an address listed in the *specificAddressListRaw* will be added to the database
 - this temporary list will be used to insert the transactions into the mongodb database, this insertion always takes place,
 even if all data has been disregarded, this makes any omissions due to data disregarding visible from the transactions api
 
