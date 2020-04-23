@@ -34,6 +34,7 @@ This application facilitates:
 
 # Current state
 - The entire loop works, and all configurations can be used
+- Transactions are inserted into database and adhere to configurations in stored_Configurations
 - Events are not inserted into database yet
 - There is no API yet, the functions in Mongo.py do work, the API will use these functions
 - The startup GUI needs an extra command for enabling/disabling the *storeSpecificAddressTransactions* boolean and for adding addresses to the *specificAddressListRaw*
@@ -43,7 +44,7 @@ This application facilitates:
 - storeSpecificAddressTransactions: string boolean, "True" or "False" - whether to store transactions pertaining to a particular set of addresses, if disabled, all transactions are saved to the database
 - specificAddressListRaw: a list containing *raw Nyzo public identifiers*, if the parameter above is enabled, only transactions pertaining to the addresses in this list will be inserted into the database
 - showGuiOnStartup: whether to show the Gui on startup or not, if you are using any kind of supervisor or cronjob, it is best to disable this
-
+- amount_of_network_observers_compliant_minimum_percentage: the minimum amount of NetworkObservers which has to adhere to its safety parameters from stored_NetworkObservers, if the amount of NetworkObservers which do not meet the compliance requirements falls below this percentage, no transactions will be inserted
 > stored_NetworkObservers file Parameters:
 
 > Contains a list of NetworkObserver dicts, each dict contains the following parameters:
