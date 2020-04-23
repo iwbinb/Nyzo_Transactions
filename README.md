@@ -37,6 +37,7 @@ This application facilitates:
 - Transactions are inserted into database and adhere to configurations in stored_Configurations
 - Transactions do insert duplicates until fixed
 - Log needs to be saved somewhere
+- Comparing the transaction ids returned for a specific block height by a NodeObserver, against the results returned by the other NetworkObservers is probably a good idea, this assures data homogeneity across multiple independent Nyzo nodes
 - Events are not inserted into database yet
 - There is no API yet, the functions in Mongo.py do work, the API will use these functions
 - The startup GUI needs an extra command for enabling/disabling the *storeSpecificAddressTransactions* boolean and for adding addresses to the *specificAddressListRaw*
