@@ -1,6 +1,7 @@
 from Configurations import Configurations, NetworkObserverConfigurations
 from helpers import getTimestampSeconds ,clearConsole, printEncloseInput, makePrettyUiLine, colorPrint, logPretty, getDateHuman
 import ast
+from Mongo import initializeMongo
 
 def showMenu_ViewNetworkObserversSaved():
     with open('stored_NetworkObservers', 'r') as f:
@@ -381,7 +382,7 @@ def initiate_MainLoop():
             block_heights_fetch_initiated = []
             fetch_timestamp = getTimestampSeconds()
             for blockHeight in range(height_start, height_end+1):
-                logPretty('Fetching transactions for blockHeight {} - NetworkObserver {}'.format(blockHeight, NetworkObserver.ip_address))
+                #logPretty('Fetching transactions for blockHeight {} - NetworkObserver {}'.format(blockHeight, NetworkObserver.ip_address))
                 block_heights_fetch_initiated.append(blockHeight)
                 NetworkObserver.fetchTransactionsForBlock(blockHeight)
 
@@ -445,29 +446,42 @@ def initiate_MainLoop():
             logPretty('NetworkObserver {} - fully compliant'.format(NetworkObserver.ip_address))
             compliant_NetworkObserver_identifiers.append(NetworkObserver.observer_identifier)
 
-    # the
+    # percentage comparison fully compliant nodes
+    minimum_compliance_percentage = initialized_configurations.amount_of_network_observers_compliant_minimum_percentage
+    actual_compliance_percentage = 100/(len(compliant_NetworkObserver_identifiers)+len(defiant_NetworkObserver_identifiers))*len(compliant_NetworkObserver_identifiers)
+    tx_insertion_allowed = False
+
+    if actual_compliance_percentage >= minimum_compliance_percentage:
+        logPretty('Minimum percentage of compliant network observers ({}%) has been met = {}%'.format(minimum_compliance_percentage, actual_compliance_percentage))
+        tx_insertion_allowed = True
+
+    if not tx_insertion_allowed:
+        logPretty('No transactions (from both compliant and defiant NetworkObservers) will be added to the database due to the minimum of compliant network observers not being met',color=colorPrint.RED)
+        # insert this event too
+
+    # insert the transactions into the database if the minimum amount of compliant network observers is met
+    # only insert transactions from compliant nodes
+    # transactions are inserted once into a temporary list and handled further down below
+    transactionsForDatabase = []
+    if tx_insertion_allowed:
+        for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+            if NetworkObserver.observer_identifier in compliant_NetworkObserver_identifiers:
+                relevant_transactions = NetworkObserver.last_seen_transaction_blocks
+                for transaction in relevant_transactions:
+                    add_to_transactionsForDatabase = True
+                    for added_transaction in transactionsForDatabase:
+                        if transaction['transactionNyzoString'] is added_transaction['transactionNyzoString']:
+                            add_to_transactionsForDatabase = False
+
+                    if add_to_transactionsForDatabase:
+                        transactionsForDatabase.append(transaction)
+            else:
+                logPretty('Transactions will not be processed for defiant NetworkObserver {}'.format(NetworkObserver.ip_address))
+
+    # the transactions from the temporary list are added to the database
 
 
-
-
-
-
-    # for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
-    #     print(NetworkObserver.last_seen_frozenEdgeHeight)
-    #     print(NetworkObserver.last_failed_frozenEdge_fetch_timestamp_seconds)
-    #     print(NetworkObserver.last_successful_frozenEdge_fetch_timestamp_seconds)
-
-
-
-
-
-
-
-
-
-
-
-
+    # the events for the network observers are added to the database
 
 
 
@@ -497,6 +511,7 @@ def initiate_MainLoop():
 
 if __name__ == "__main__":
     amount_of_loops = 0
+    initializeMongo()
     initialized_configurations = Configurations()
     initialized_NetworkObserver_configurations = NetworkObserverConfigurations(amount_of_network_observers_compliant_minimum_percentage=initialized_configurations.amount_of_network_observers_compliant_minimum_percentage)
     if initialized_configurations.showGuiOnStartup:
