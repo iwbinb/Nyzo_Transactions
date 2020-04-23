@@ -340,11 +340,116 @@ def initiate_MainLoop():
         else:
             logPretty('Disregarding frozenEdgeHeight discrepancy check due to configuration of consider_frozen_edge_discrepancy for NetworkObserver {}'.format(frozenEdge_fetch['ip_address']), color=colorPrint.YELLOW)
 
+    # assert if timestamp is problematic
     for frozenEdge_fetch in frozenEdge_fetches:
         logPretty('Checking if last failed frozenEdge fetch resides far enough in history per the configurations for NetworkObserver {}'.format(frozenEdge_fetch['ip_address']))
         if (frozenEdge_fetch['last_failed_frozenEdge_fetch_timestamp_seconds'] + frozenEdge_fetch['failed_fetch_minimum_seconds_passed']) > frozenEdge_fetch['fetch_timestamp']:
             logPretty('Last failed frozenEdge fetch NOT old enough per the configuration minimum for NetworkObserver {}'.format(frozenEdge_fetch['ip_address'], color=colorPrint.RED))
             frozenEdge_fetch['timestamp_problematic'] = True
+        else:
+            logPretty('Timestamp compliant for NetworkObserver {}'.format(frozenEdge_fetch['ip_address']))
+
+    # push the first assertions to NetworkObserver
+    for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+        for frozenEdge_fetch in frozenEdge_fetches:
+            if NetworkObserver.observer_identifier == frozenEdge_fetch['observer_identifier']:
+                if frozenEdge_fetch['deviation_problematic']:
+                    NetworkObserver.frozenEdge_in_sync = False
+                    logPretty('FrozenEdge considered not in sync for NetworkObserver {}'.format(NetworkObserver.ip_address), color=colorPrint.YELLOW)
+                else:
+                    NetworkObserver.frozenEdge_in_sync = True
+                    logPretty('FrozenEdge considered in sync for NetworkObserver {}'.format(NetworkObserver.ip_address))
+
+                if frozenEdge_fetch['timestamp_problematic']:
+                    NetworkObserver.frozenEdge_fetching_reliable = False
+                    logPretty('FrozenEdge fetching considered unreliable for NetworkObserver {}'.format(NetworkObserver.ip_address), color=colorPrint.YELLOW)
+                else:
+                    NetworkObserver.frozenEdge_fetching_reliable = True
+                    logPretty('FrozenEdge fetching considered reliable for NetworkObserver {}'.format(NetworkObserver.ip_address))
+
+    # temporary list used to store timestamp results of transaction fetches, used to determine problematic fetching behavior
+    after_blockFetches = []
+
+    # use these assertions to determine if we want to try and fetch transactions from the nodes
+    for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+        if NetworkObserver.frozenEdge_in_sync and NetworkObserver.frozenEdge_fetching_reliable:
+            # the heights for transaction fetching are determined according to a network observer's frozenEdgeHeight
+            height_start = NetworkObserver.last_seen_frozenEdgeHeight - NetworkObserver.chunk_size_missing_blocks
+            height_end = NetworkObserver.last_seen_frozenEdgeHeight
+            logPretty('Starting fetching of transactions frozenEdge range({} - {}) - NetworkObserver {}'.format(height_start, height_end, NetworkObserver.ip_address))
+
+            block_heights_fetch_initiated = []
+            fetch_timestamp = getTimestampSeconds()
+            for blockHeight in range(height_start, height_end+1):
+                logPretty('Fetching transactions for blockHeight {} - NetworkObserver {}'.format(blockHeight, NetworkObserver.ip_address))
+                block_heights_fetch_initiated.append(blockHeight)
+                NetworkObserver.fetchTransactionsForBlock(blockHeight)
+
+            logPretty('Transaction fetching finished for NetworkObserver {}'.format(NetworkObserver.ip_address))
+            after_blockFetches.append({
+                'observer_identifier': NetworkObserver.observer_identifier,
+                'ip_address': NetworkObserver.ip_address,
+                'last_failed_transaction_fetch_timestamp_seconds': NetworkObserver.last_failed_transaction_fetch_timestamp_seconds,
+                'last_successful_transaction_fetch_timestamp_seconds': NetworkObserver.last_successful_transaction_fetch_timestamp_seconds,
+                'fetch_timestamp': fetch_timestamp,
+                'failed_fetch_minimum_seconds_passed': NetworkObserver.failed_fetch_minimum_seconds_passed,
+                'block_fetching_reliable': None,
+                'missing_blocks_in_chunk': False #
+            })
+
+        else:
+            logPretty('Skipping transaction fetching for NetworkObserver {}'.format(NetworkObserver.ip_address), color=colorPrint.YELLOW)
+
+    # assert if timestamp is problematic
+    for blockFetch in after_blockFetches:
+        logPretty('Checking if last failed transaction fetch resides far enough in history per the configurations for NetworkObserver {}'.format(blockFetch['ip_address']))
+        if (blockFetch['last_failed_transaction_fetch_timestamp_seconds'] + blockFetch['failed_fetch_minimum_seconds_passed']) > blockFetch['fetch_timestamp']:
+            logPretty('Last failed transaction fetch NOT old enough per the configuration minimum for NetworkObserver {}'.format(blockFetch['ip_address'], color=colorPrint.RED))
+            blockFetch['block_fetching_reliable'] = False
+        else:
+            logPretty('Timestamp compliant for NetworkObserver {}'.format(blockFetch['ip_address']))
+            blockFetch['block_fetching_reliable'] = True
+
+    # push states to NetworkObserver
+    for blockFetch in after_blockFetches:
+        for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+            if blockFetch['observer_identifier'] == NetworkObserver.observer_identifier:
+                NetworkObserver.block_fetching_reliable = blockFetch['block_fetching_reliable']
+                NetworkObserver.missing_blocks_in_chunk = blockFetch['missing_blocks_in_chunk'] # not assigned, could be used in future
+
+    # depending on consider_ configurations, we filter nodes
+    compliant_NetworkObserver_identifiers = []
+    defiant_NetworkObserver_identifiers = []
+    for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+        compliant = True
+
+        if NetworkObserver.consider_missing_blocks:
+            if NetworkObserver.missing_blocks_in_chunk:
+                compliant = False
+
+        if NetworkObserver.consider_frozen_edge_discrepancy:
+            if not NetworkObserver.frozenEdge_in_sync:
+                compliant = False
+
+        if NetworkObserver.consider_fetching_reliability:
+            if not NetworkObserver.frozenEdge_fetching_reliable:
+                compliant = False
+            if not NetworkObserver.block_fetching_reliable:
+                compliant = False
+
+        if not compliant:
+            logPretty('NetworkObserver {} - NOT fully compliant'.format(NetworkObserver.ip_address), color=colorPrint.RED)
+            defiant_NetworkObserver_identifiers.append(NetworkObserver.observer_identifier)
+
+        if compliant:
+            logPretty('NetworkObserver {} - fully compliant'.format(NetworkObserver.ip_address))
+            compliant_NetworkObserver_identifiers.append(NetworkObserver.observer_identifier)
+
+    # the
+
+
+
+
 
 
     # for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:

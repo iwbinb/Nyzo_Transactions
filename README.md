@@ -39,8 +39,6 @@ The start of the loop pertains to all network observers, as comparing the frozen
 - query the frozen edge from each individual network observer
 - depending on if the query is successful, update either *last_failed_frozenEdge_fetch_timestamp_seconds* or *last_successful_frozenEdge_fetch_timestamp_seconds*
 - update the last_seen_frozenEdgeHeight parameter of an observer's class instance if the fetch was successful, otherwise leave the last successful run's frozenEdge enact
-
-
 - compare the frozen edge of all network observers against each other
 - consider the *allowed_frozenEdge_sync_discrepancy* per individual Network Observer to assert whether the observer is to be considered in sync relative to its equal peers
 - if a node's frozenedge deviates more than allowed, *frozenEdge_in_sync* = False
@@ -56,8 +54,8 @@ needs to be utilized *(last_seen_frozenEdgeHeight-n)*range(chunk_size_missing_bl
 - the results are stored in *last_seen_transaction_blocks*
 - depending on the results now stored in *last_seen_transaction_blocks*, the *block_fetching_reliable* param is either set to True or False:
 it considers the *failed_fetch_minimum_seconds_passed* for comparing *last_failed_transaction_fetch_timestamp_seconds* and *last_successful_transaction_fetch_timestamp_seconds* (similar principle as with frozenedge, but for blocks)
-- depending on whether the *last_seen_transaction_blocks* contains (successful fetch communication + block available on node) all blocks, 
-the *missing_blocks_in_chunk* param is either set to True or False
+- (depending on whether the *last_seen_transaction_blocks* contains (successful fetch communication + block available on node) all blocks, 
+the *missing_blocks_in_chunk* param is either set to True or False) No
 
 
 The next bit of the loop will make use of 3 configurable parameters:

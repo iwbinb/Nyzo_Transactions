@@ -25,7 +25,7 @@ class NetworkObserver:
         self.last_failed_frozenEdge_fetch_timestamp_seconds = 0
         self.last_successful_frozenEdge_fetch_timestamp_seconds = 0
 
-        self.last_seen_transaction_blocks = {}
+        self.last_seen_transaction_blocks = []
         self.last_failed_transaction_fetch_timestamp_seconds = 0
         self.last_successful_transaction_fetch_timestamp_seconds = 0
 
@@ -57,5 +57,27 @@ class NetworkObserver:
             logPretty('Failed to fetch frozenEdgeHeight from NetworkObserver {}'.format(self.ip_address), color=colorPrint.RED)
             self.last_failed_frozenEdge_fetch_timestamp_seconds = getTimestampSeconds()
 
+    def fetchTransactionsForBlock(self, block_height):
+        from helpers import getTimestampSeconds
+        # logPretty('Attempting to fetch transactions for blockHeight {} from NetworkObserver {}'.format(block_height, self.ip_address))
+        temp_res = requests.get(self.base_url+'transactionSearch?blockHeight='+str(block_height))
+        if temp_res.status_code == 200:
+            try:
+                # logPretty('transactionSearch fetch successful for blockHeight {} from NetworkObserver {}'.format(block_height, self.ip_address))
+                self.last_successful_transaction_fetch_timestamp_seconds = getTimestampSeconds()
+                response_decoded = json.loads(temp_res.content.decode('utf-8'))
+                if len(response_decoded['errors']) == 0:
+                    self.last_seen_transaction_blocks = [] # the previous loop's results are discarded here
+                    for transaction in response_decoded['result']:
+                        self.last_seen_transaction_blocks.append(transaction)
+                else:
+                    self.last_seen_transaction_blocks = []
+                    raise ValueError
+            except Exception as e:
+                logPretty('{} - Failed to decode JSON from successful transactionSearch fetch'.format(e), color=colorPrint.RED)
+                self.last_failed_transaction_fetch_timestamp_seconds = getTimestampSeconds()
+        else:
+            logPretty('Failed to fetch transactionSearch from NetworkObserver {}'.format(self.ip_address), color=colorPrint.RED)
+            self.last_failed_transaction_fetch_timestamp_seconds = getTimestampSeconds()
 
 
