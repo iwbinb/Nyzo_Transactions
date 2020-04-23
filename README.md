@@ -35,6 +35,7 @@ This application facilitates:
 # Current state
 - The entire loop works, and all configurations can be used
 - Transactions are inserted into database and adhere to configurations in stored_Configurations
+- Transactions do insert duplicates until fixed
 - Events are not inserted into database yet
 - There is no API yet, the functions in Mongo.py do work, the API will use these functions
 - The startup GUI needs an extra command for enabling/disabling the *storeSpecificAddressTransactions* boolean and for adding addresses to the *specificAddressListRaw*
