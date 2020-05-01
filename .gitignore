@@ -12,3 +12,5 @@
 *.pyc
 __pycache__/NetworkObserver.cpython-37.pyc
 __pycache__/Configurations.cpython-37.pyc
+__pycache__/NetworkObserver.cpython-37.pyc
+__pycache__/Configurations.cpython-37.pyc
