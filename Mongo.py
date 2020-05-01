@@ -15,9 +15,10 @@ def checkIfTransactionInDatabase(transactionNyzoString):
     global mongoClient
     global mongoDatabase
     global mongoCollectionTransactions
-    query = {'transactionNyzoString': transactionNyzoString}
-    res = mongoDatabase.mongoCollectionTransactions.count(query)
-    if res != 0:
+
+    res = getTransactionsFromDatabase(transactionNyzoString, filter_type='transactionNyzoString')
+
+    if len(res) > 0:
         return True
     return False
 
@@ -32,6 +33,10 @@ def addTransactionToDatabase(transaction_dict):
             'run_id': transaction_dict['run_id'],
             'amt_compliant_nodes': transaction_dict['amt_compliant_nodes'],
             'amt_defiant_nodes': transaction_dict['amt_defiant_nodes'],
+            'total_deviations_from_highest_FrozenEdge': transaction_dict['total_deviations_from_highest_FrozenEdge'],
+            'total_blocks_with_deviations': transaction_dict['total_blocks_with_deviations'],
+            'transactions_skipped': transaction_dict['transactions_skipped'],
+            'adjusted_blocks_with_deviations': transaction_dict['adjusted_blocks_with_deviations'],
             'height': transaction_dict['height'],
             'timestampMilliseconds': transaction_dict['timestampMilliseconds'],
             'type': transaction_dict['type'],
@@ -54,6 +59,8 @@ def getTransactionsFromDatabase(filter_value, filter_type='blockHeight'):
 
     if filter_type == 'blockHeight':
         query = {'height': filter_value}
+    elif filter_type == 'transactionNyzoString':
+        query = {'transactionNyzoString': filter_value}
     elif filter_type == 'timestampMilliseconds':  # TODO ideally this should be AROUND a timestamp with leniency
         query = {'timestampMilliseconds': filter_value}
     else:

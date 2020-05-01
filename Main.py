@@ -301,6 +301,7 @@ def initiate_MainLoop():
     #- generate a new run_id and timestamp
     #- query the frozen edge from each individual network observer
     for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+        NetworkObserver.discardPreviousRunTransactions()  # previous run's transactions are discarded to start fresh
         NetworkObserver.assignNewRunId()
         fetch_timestamp = getTimestampSeconds()
         NetworkObserver.fetchFrozenEdge()
@@ -353,6 +354,7 @@ def initiate_MainLoop():
     for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
         for frozenEdge_fetch in frozenEdge_fetches:
             if NetworkObserver.observer_identifier == frozenEdge_fetch['observer_identifier']:
+                NetworkObserver.frozenEdge_deviation = frozenEdge_fetch['deviation']
                 if frozenEdge_fetch['deviation_problematic']:
                     NetworkObserver.frozenEdge_in_sync = False
                     logPretty('FrozenEdge considered not in sync for NetworkObserver {}'.format(NetworkObserver.ip_address), color=colorPrint.YELLOW)
@@ -373,7 +375,6 @@ def initiate_MainLoop():
     # use these assertions to determine if we want to try and fetch transactions from the nodes
     for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
         if NetworkObserver.frozenEdge_in_sync and NetworkObserver.frozenEdge_fetching_reliable:
-            NetworkObserver.discardPreviousRunTransactions() # previous run's transactions are discarded to start fresh
             # the heights for transaction fetching are determined according to a network observer's frozenEdgeHeight
             height_start = NetworkObserver.last_seen_frozenEdgeHeight - NetworkObserver.chunk_size_missing_blocks
             height_end = NetworkObserver.last_seen_frozenEdgeHeight
@@ -468,22 +469,33 @@ def initiate_MainLoop():
             if NetworkObserver.observer_identifier in compliant_NetworkObserver_identifiers:
                 relevant_transactions = NetworkObserver.last_seen_transaction_blocks
                 for transaction in relevant_transactions:
-                    add_to_transactionsForDatabase = True
-                    for added_transaction in transactionsForDatabase:
-                        if transaction['transactionNyzoString'] is added_transaction['transactionNyzoString']:
-                            add_to_transactionsForDatabase = False
-
-                    if add_to_transactionsForDatabase:
-                        transactionsForDatabase.append(transaction)
+                    transactionsForDatabase.append(transaction)
             else:
                 logPretty('Transactions will not be processed for defiant NetworkObserver {}'.format(NetworkObserver.ip_address))
+    else:
+        logPretty('Transactions will not be processed for all NetworkObservers due to the minimum amount of compliant nodes not being met', color=colorPrint.RED)
 
     # only unique transactions will be added to the database
     logPretty('Amount of transactions before uniqueness filter: {}'.format(len(transactionsForDatabase)))
     transactionsUniqueForDatabase = []
     for transaction in transactionsForDatabase:
-        if not checkIfTransactionInDatabase(transaction['transactionNyzoString']):
+        if checkIfTransactionInDatabase(transaction['transactionNyzoString']) is False:
             transactionsUniqueForDatabase.append(transaction)
+
+    #remove duplicates in transactionsUniqueForDatabase
+    deduplication_txs = set()
+    deduplicated_transactionForDatabase = []
+    for tx in transactionsUniqueForDatabase:
+        try:
+            if tx['transactionNyzoString'] not in deduplication_txs:
+                deduplication_txs.add(tx['transactionNyzoString'])
+            else:
+                raise KeyError
+        except Exception as e:
+            continue
+        deduplicated_transactionForDatabase.append(tx)
+
+    transactionsUniqueForDatabase = deduplicated_transactionForDatabase
 
     # some variables are fetched from NetworkObservers
     # this is custom data which will be added to the transaction dict below
@@ -497,12 +509,34 @@ def initiate_MainLoop():
     # the unique transactions are added to the database, some custom data is added to the transaction dict
     logPretty('Amount of transactions after uniqueness filter: {}'.format(len(transactionsUniqueForDatabase)))
 
-    amount_of_irrelevant_transactions = 0 # this pertains to the storeSpecificAddressTransactions filtration
-
     if initialized_configurations.storeSpecificAddressTransactions:
         logPretty('storeSpecificAddressTransactions is enabled, not all transactions will be saved!',color=colorPrint.YELLOW)
 
+    #
+
+    amount_of_irrelevant_transactions = 0  # this pertains to the storeSpecificAddressTransactions filtration
+    highest_frozenEdge_deviation = 0
+    blocks_with_deviations = []
+
+    for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+        if NetworkObserver.frozenEdge_deviation > highest_frozenEdge_deviation:
+            highest_frozenEdge_deviation = NetworkObserver.frozenEdge_deviation
+
+    final_transactionsForDatabase = []
+
     for transaction in transactionsUniqueForDatabase:
+        # consider data homogeneity in terms of transactions, this uses the amount of compliant nodes
+        seen_by_networkobservers = 0
+        for NetworkObserver in initialized_NetworkObserver_configurations.loadedNetworkObservers:
+            curr_txs = NetworkObserver.last_seen_transaction_blocks
+            for tx in curr_txs:
+                if tx['transactionNyzoString'] in transaction['transactionNyzoString']:
+                    seen_by_networkobservers +=1
+
+        if seen_by_networkobservers < amt_compliant_nodes:
+            if transaction['height'] not in blocks_with_deviations:
+                blocks_with_deviations.append(transaction['height'])
+
         ship_to_database = False
         if initialized_configurations.storeSpecificAddressTransactions:
             if transaction['receiverIdentifier'] in initialized_configurations.specificAddressListRaw or transaction['senderIdentifier'] in initialized_configurations.specificAddressListRaw:
@@ -517,10 +551,28 @@ def initiate_MainLoop():
             transaction['run_id'] = current_run_id
             transaction['amt_compliant_nodes'] = amt_compliant_nodes
             transaction['amt_defiant_nodes'] = amt_defiant_nodes
-            addTransactionToDatabase(transaction)
+            final_transactionsForDatabase.append(transaction)
 
     if amount_of_irrelevant_transactions > 0:
         logPretty('Amount of transactions skipped due to storeSpecificAddressTransactions: {}'.format(amount_of_irrelevant_transactions))
+
+    logPretty('Total block deviations from highest frozenEdgeHeight: {}'.format(highest_frozenEdge_deviation))
+    logPretty('Total of adjusted blocks with transaction deviations: {}'.format(len(blocks_with_deviations)/2))
+
+    if (len(blocks_with_deviations)/2) > highest_frozenEdge_deviation:
+        logPretty('The amount of blocks for which the transaction content differs shouldn\'t exceed {} but {} was found!'.format(highest_frozenEdge_deviation, (len(blocks_with_deviations)/2)), color=colorPrint.RED)
+
+    for tx in final_transactionsForDatabase:
+        tx['total_deviations_from_highest_FrozenEdge'] = highest_frozenEdge_deviation
+        tx['total_blocks_with_deviations'] = len(blocks_with_deviations)
+        tx['adjusted_blocks_with_deviations'] = len(blocks_with_deviations)/2
+        tx['transactions_skipped'] = amount_of_irrelevant_transactions
+        addTransactionToDatabase(tx)
+
+
+
+
+
 
     # the events for the network observers are added to the database
 

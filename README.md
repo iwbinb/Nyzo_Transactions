@@ -35,14 +35,16 @@ This application facilitates:
 # Current state
 - The entire loop works, and all configurations can be used
 - Transactions are inserted into database and adhere to configurations in stored_Configurations
-- Transactions do insert duplicates until fixed
-- Comparing the transaction ids returned for a specific block height by a NodeObserver, against the results returned by the other NetworkObservers is probably a good idea, this assures data homogeneity across multiple independent Nyzo nodes
 - Events are not inserted into database yet
 - There is no API yet, the functions in Mongo.py do work, the API will use these functions
 - The startup GUI needs an extra command for enabling/disabling the *storeSpecificAddressTransactions* boolean and for adding addresses to the *specificAddressListRaw*
 
 # Changelog
 - added logging of info to main.log - max log size 25 MB with 2 backups
+- added logging of errors to error.log - max log size 25 MB with 2 backups
+- transactions are inserted only once (bug fix)
+- 3 new parameters were added to the transaction database insert: **total_deviations_from_highest_FrozenEdge**, **total_blocks_with_deviations** and **adjusted_blocks_with_deviations** ; the key parameters are the first and the last,
+if the last parameter indicates a number higher than the first parameter, there's a transactional content mismatch from more blocks than should be expected from the highest frozenEdgeHeight deviation
 
 # Configurations
 > stored_Configurations file Parameters:

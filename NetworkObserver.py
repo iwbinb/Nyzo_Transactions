@@ -17,6 +17,7 @@ class NetworkObserver:
         self.allowed_frozenEdge_sync_discrepancy = allowed_frozenEdge_sync_discrepancy
         self.url_prepend = url_prepend
         self.url_append = url_append
+        self.frozenEdge_deviation = 0
 
         self.base_url = url_prepend + ip_address + url_append
         self.rolling_run_ids = [['', 0], ['', 0], ['', 0], ['', 0], ['', 0]]
@@ -59,6 +60,7 @@ class NetworkObserver:
 
     def discardPreviousRunTransactions(self):
         self.last_seen_transaction_blocks = []
+        self.frozenEdge_deviation = 0
 
     def fetchTransactionsForBlock(self, block_height):
         from helpers import getTimestampSeconds
