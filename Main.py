@@ -569,37 +569,8 @@ def initiate_MainLoop():
         tx['transactions_skipped'] = amount_of_irrelevant_transactions
         addTransactionToDatabase(tx)
 
-
-
-
-
-
     # the events for the network observers are added to the database
 
-
-
-        # print(NetworkObserver.observer_identifier)
-        # print(NetworkObserver.ip_address)
-        # print(NetworkObserver.consider_missing_blocks)
-        # print(NetworkObserver.consider_frozen_edge_discrepancy)
-        # print(NetworkObserver.consider_fetching_reliability)
-        # print(NetworkObserver.chunk_size_missing_blocks)
-        # print(NetworkObserver.failed_fetch_minimum_seconds_passed)
-        # print(NetworkObserver.allowed_frozenEdge_sync_discrepancy)
-        # print(NetworkObserver.url_prepend)
-        # print(NetworkObserver.url_append)
-        # print(NetworkObserver.base_url)
-        # print(NetworkObserver.rolling_run_ids)
-        # print(NetworkObserver.last_seen_frozenEdgeHeight)
-        # print(NetworkObserver.last_failed_frozenEdge_fetch_timestamp_seconds)
-        # print(NetworkObserver.last_successful_frozenEdge_fetch_timestamp_seconds)
-        # print(NetworkObserver.last_seen_transaction_blocks)
-        # print(NetworkObserver.last_failed_transaction_fetch_timestamp_seconds)
-        # print(NetworkObserver.last_successful_transaction_fetch_timestamp_seconds)
-        # print(NetworkObserver.block_fetching_reliable)
-        # print(NetworkObserver.missing_blocks_in_chunk)
-        # print(NetworkObserver.frozenEdge_fetching_reliable)
-        # print(NetworkObserver.frozenEdge_in_sync)
 
 
 if __name__ == "__main__":
