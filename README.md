@@ -2,8 +2,6 @@
  Can be used to confirm incoming transactions to a Nyzo address and aims to be ultra-redundant out of the box.
  
  Consider it your ultra-paranoid blockchain watchdog.
- 
- This repository is not production ready. Do not use it, it will not work at this time.
 
 # Goal
 What this repository aims to be is Nyzo transaction witnesser.
